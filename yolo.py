@@ -25,7 +25,7 @@ class YOLO(object):
         "model_path": 'model_data/yolo.h5',
         "anchors_path": 'model_data/yolo_anchors.txt',
         "classes_path": 'model_data/coco_classes.txt',
-        "score" : 0.3,
+        "score" : 0.25,
         "iou" : 0.45,
         "model_image_size" : (416, 416),
         "gpu_num" : 1,
@@ -37,7 +37,7 @@ class YOLO(object):
             return cls._defaults[n]
         else:
             return "Unrecognized attribute name '" + n + "'"
-
+    
     def __init__(self, **kwargs):
         self.__dict__.update(self._defaults) # set up default values
         self.__dict__.update(kwargs) # and update with user overrides
@@ -101,7 +101,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image):
+    def detect_image(self, image, return_bbox=False, print_values=True):
         start = timer()
 
         if self.model_image_size != (None, None):
@@ -113,8 +113,8 @@ class YOLO(object):
                               image.height - (image.height % 32))
             boxed_image = letterbox_image(image, new_image_size)
         image_data = np.array(boxed_image, dtype='float32')
-
-        print(image_data.shape)
+        if print_values:
+            print(image_data.shape)
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
@@ -125,11 +125,16 @@ class YOLO(object):
                 self.input_image_shape: [image.size[1], image.size[0]],
                 K.learning_phase(): 0
             })
+        if print_values:
+            print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
 
-        print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
 
-        font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
-                    size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
+        try:
+            font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
+                        size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
+        except Exception:
+            font = ImageFont.load_default()
+
         thickness = (image.size[0] + image.size[1]) // 300
 
         for i, c in reversed(list(enumerate(out_classes))):
@@ -146,7 +151,9 @@ class YOLO(object):
             left = max(0, np.floor(left + 0.5).astype('int32'))
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-            print(label, (left, top), (right, bottom))
+            out_boxes[i] = np.array([left, top, right, bottom])
+            if print_values:
+                print(label, (left, top), (right, bottom))
 
             if top - label_size[1] >= 0:
                 text_origin = np.array([left, top - label_size[1]])
@@ -165,7 +172,12 @@ class YOLO(object):
             del draw
 
         end = timer()
-        print(end - start)
+        if print_values:
+            print(end - start)
+
+        if return_bbox:
+            return image, out_boxes, out_scores, out_classes
+
         return image
 
     def close_session(self):
