@@ -101,7 +101,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image, return_bbox=False, print_values=True, font='font/FiraMono-Medium.otf):
+    def detect_image(self, image, return_bbox=False, print_values=True, font='font/FiraMono-Medium.otf'):
         start = timer()
 
         if self.model_image_size != (None, None):
