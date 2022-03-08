@@ -2,9 +2,10 @@ import numpy as np
 
 
 class YOLO_Kmeans:
-    def __init__(self, cluster_number, filename):
+    def __init__(self, cluster_number, filename=None, annotations=None):
         self.cluster_number = cluster_number
         self.filename = filename
+        self.annotations = annotations
     
     def iou(self, boxes, clusters):  # 1 box -> k clusters
         n = boxes.shape[0]
@@ -68,6 +69,16 @@ class YOLO_Kmeans:
         f.close()
 
     def txt2boxes(self):
+        if self.annotations:
+            for bboxes in self.annotations:
+                length = len(bboxes)
+                for bbox in bboxes:
+                    width = bbox[2] - bbox[0]
+                    height = bbox[3] - bbox[1]
+                    dataSet.append([width, height])
+            result = np.array(dataSet)
+            return result
+
         f = open(self.filename, 'r')
         dataSet = []
         for line in f:
