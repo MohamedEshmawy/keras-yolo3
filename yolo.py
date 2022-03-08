@@ -103,7 +103,8 @@ class YOLO(object):
 
     def detect_image(self, image, return_bbox=False, print_values=True, font='font/FiraMono-Medium.otf'):
         start = timer()
-
+        print(os.getcwd())
+        
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
@@ -133,7 +134,7 @@ class YOLO(object):
             font = ImageFont.truetype(font=font,
                         size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
         except Exception:
-            font = ImageFont.load_default()
+            ImageFont.truetype(font=None, size=10, index=0, encoding='', layout_engine=None)
 
         thickness = (image.size[0] + image.size[1]) // 300
 
@@ -179,6 +180,30 @@ class YOLO(object):
             return image, out_boxes, out_scores, out_classes
 
         return image
+
+
+    def detect_imageLite(self, image):
+        # takes in a numpy array 
+        start = timer()
+        print(os.getcwd())
+        
+        if self.model_image_size != (None, None):
+            assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
+            assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
+
+        image_data = image
+
+        image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
+
+        out_boxes, out_scores, out_classes = self.sess.run(
+            [self.boxes, self.scores, self.classes],
+            feed_dict={
+                self.yolo_model.input: image_data,
+                self.input_image_shape: [image.shape[0], image.shape[1]],
+                K.learning_phase(): 0
+            })
+        return out_boxes, out_scores, out_classes
+
 
     def close_session(self):
         self.sess.close()
