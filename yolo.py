@@ -54,11 +54,14 @@ class YOLO(object):
         return class_names
 
     def _get_anchors(self):
-        anchors_path = os.path.expanduser(self.anchors_path)
-        with open(anchors_path) as f:
-            anchors = f.readline()
-        anchors = [float(x) for x in anchors.split(',')]
-        return np.array(anchors).reshape(-1, 2)
+        if isinstance(self.anchors_path, str):
+            anchors_path = os.path.expanduser(self.anchors_path)
+            with open(anchors_path) as f:
+                anchors = f.readline()
+            anchors = [float(x) for x in anchors.split(',')]
+            return np.array(anchors).reshape(-1, 2)
+        else:
+            return self.anchors_path
 
     def generate(self):
         model_path = os.path.expanduser(self.model_path)
