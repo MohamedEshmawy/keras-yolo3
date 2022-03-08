@@ -69,7 +69,7 @@ class YOLO_Kmeans:
         f.close()
 
     def txt2boxes(self):
-        if self.annotations:
+        if self.annotations is not None:
             for bboxes in self.annotations:
                 length = len(bboxes)
                 for bbox in bboxes:
