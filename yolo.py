@@ -205,6 +205,17 @@ class YOLO(object):
                 self.input_image_shape: [image.shape[0], image.shape[1]],
                 K.learning_phase(): 0
             })
+
+
+        for i, c in reversed(list(enumerate(out_classes))):
+            box = out_boxes[i]
+            top, left, bottom, right = box
+            top = max(0, np.floor(top + 0.5).astype('int32'))
+            left = max(0, np.floor(left + 0.5).astype('int32'))
+            bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
+            right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
+            out_boxes[i] = np.array([left, top, right, bottom])
+      
         return out_boxes, out_scores, out_classes
 
 
